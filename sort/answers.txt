@@ -1,0 +1,24 @@
+sort1 uses:bubble sort
+
+How do you know?:
+7 sec to sort random
+7 sec to sort reversed
+2 sec to sort sorted
+
+
+sort2 uses: merge sort
+
+How do you know?:
+2 sec to sort random
+2 sec to sort reversed
+2 sec to sort sorted
+
+
+
+
+sort3 uses:
+selection sort 
+How do you know?:
+4 sec to sort random
+4 sec to sort reversed
+4 sec to sort sorted

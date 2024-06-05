@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block title %}Your Tasks{% endblock %}
+
+{% block content %}
+    <h1>Your Tasks</h1>
+
+    <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#taskModal">
+        <i class="fa fa-plus"></i> Add Task
+    </button>
+
+    <ul id="task-list" class="list-group mt-4">
+        {% for task in tasks %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ task.task_name }}</strong><br>
+                    {{ task.task_description }}<br>
+                    <span class="priority-{{ task.priority|lower }}">{{ task.priority }}</span><br>
+                    Due Date: {{ task.due_date }}<br>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="deleteTask('{{ task.task_id }}')">Done</button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Modal for adding tasks -->
+    <div class="modal fade" id="taskModal" tabindex="-1" role="dialog" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel">Add Task</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="task-form">
+                        <div class="form-group">
+                            <input type="text" name="task_name" class="form-control" placeholder="Task Name" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="task_description" class="form-control" placeholder="Task Description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <select name="priority" class="form-control">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="date" name="due_date" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Task</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for handling form submission and deletion -->
+    <script>
+        document.getElementById("task-form").onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch("{{ url_for('tasks') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token() }}"
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            updateTaskList(data);
+            $('#taskModal').modal('hide'); // Hide modal after submission
+        };
+
+        async function deleteTask(taskId) {
+            const formData = new FormData();
+            formData.append("task_id", taskId);
+            const response = await fetch("{{ url_for('delete_task') }}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token() }}"
+                },
+                body: formData,
+            });
+            const data = await response.json();
+            updateTaskList(data);
+        }
+
+        function updateTaskList(tasks) {
+            const taskList = document.getElementById("task-list");
+            taskList.innerHTML = "";
+            tasks.forEach(task => {
+                const taskItem = document.createElement("li");
+                taskItem.className = "list-group-item d-flex justify-content-between align-items-center";
+                taskItem.innerHTML = `
+                    <div>
+                        <strong>${task.task_name}</strong><br>
+                        ${task.task_description}<br>
+                        <span class="priority-${task.priority.toLowerCase()}">${task.priority}</span><br>
+                        Due Date: ${task.due_date}<br>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="deleteTask('${task.task_id}')">Done</button>
+                `;
+                taskList.appendChild(taskItem);
+            });
+        }
+    </script>
+{% endblock %}
